@@ -1,79 +1,92 @@
-Solid. A Bootstrap theme for Jekyll.
-============
-![Screenshot](https://st4ple.github.io/solid-jekyll/assets/img/browser.png)
+---
+### *This is deprecated, please use [Single Page Apps for GitHub Pages](https://github.com/rafrex/spa-github-pages)*  
+###### *A generic solution that works with all single page apps, not just React*
+---
+# React for GitHub Pages
 
-This is a [Jekyll](http://jekyllrb.com/) port of the [Solid theme](http://www.blacktie.co/2014/05/solid-multipurpose-theme/) by [blacktie.co](http://www.blacktie.co/). Visit the [live demo](https://st4ple.github.io/solid-jekyll/) for a preview. 
+[Live example](http://react-github-pages.rafrex.com)  
 
-##Usage
-This theme can be customized, built and published straight from GitHub, thanks to [GitHub Pages](https://pages.github.com/). A local installation of Jekyll isn't even necessary!
+React for GitHub Pages is a lightweight solution for deploying [React][react] single page apps with [React Router][reactRouter] `browserHistory` using [GitHub Pages][ghPagesOverview].
 
-[Fork this repository](https://github.com/st4ple/solid-jekyll/fork) to get started. 
-####Customize  
-Most general settings and data like site name, colors, address, etc. can be configured and changed right in the main config file: `/_config.yml`
-The content of the Home page can be changed here: `/home.html`
-The content of the About page can be changed here: `/about.html`
-The content of the Portfolio page can be changed here:`/portfolio.html`
-The content of the Contact page can be changed here:`/contact.html`
-####Add content  
-Delete the demo content and publish your own content.
-#####Blog post
-Create a Blog post by creating a file called `yyyy-mm-dd-name-of-post-like-this.markdown` in the `/_posts/blog/` directory with the following template:
-```markdown
----
-layout: post          #important: don't change this
-title: "Name of post like this"
-date: yyyy-mm-dd hh:mm:ss
-author: Name
-categories:
-- blog                #important: leave this here
-- category1
-- category2
-- ...
-img: post01.jpg       #place image (850x450) with this name in /assets/img/blog/
-thumb: thumb01.jpg    #place thumbnail (70x70) with this name in /assets/img/blog/thumbs/
----
-This text will appear in the excerpt "post preview" on the Blog page that lists all the posts.
-<!--more-->
-This text will not be shown in the excerpt because it is after the excerpt separator.
-```
-#####Project post
-Create a Project post to go in your Portfolio by creating a file called `yyyy-mm-dd-name-of-the-project.markdown` in the `/_posts/project/` directory with the following template:
-```markdown
----
-layout: project       #important: don't change this
-title:  "Name of the project"
-date: yyyy-mm-dd hh:mm:ss
-author: Name
-categories:
-- project             #important: leave this here
-img: portfolio_10.jpg #place image (600x450) with this name in /assets/img/project/
-thumb: thumb02.jpg
-carousel:
-- single01.jpg        #place image (1280x600) with this name in /assets/img/project/carousel/
-- single02.jpg  
-- ...
-client: Company XY
-website: http://www.internet.com
----
-####This is a heading
-This is a regular paragraph. Write as much as you like.
-```
-#####Question entry
-Create a Question entry (that is listed in the Frequently Asked section on the Home page) in this directory by creating a file called `yyyy-mm-dd-do-i-have-a-question.markdown` in the `/_posts/project/` directory with the following template:
-```markdown
----
-layout: question
-title:  "Do I have a question?"
-date: yyyy-mm-dd hh:mm:ss
-author: First Last
-categories:
-- question            #important: leave this here
----
-####Can I use this theme for my website?
-Of course you can!
-```
-####Publish
-To publish with [GitHub Pages](https://pages.github.com/), simply create a branch called `gh-pages`in your repository. GitHub will build your site automatically and publish it at `http://yourusername.github.io/repositoryname/`.  
-If there are problems with loading assets like CSS files and images, make sure that the `baseurl` in the `_config.yml`is set correctly (it should say `/repositoryname`).
+I love React with React Router. Need complex views with lifecycle methods and dynamic routing? Done. Need a simple site with a few fixed routes? Use functional stateless components and JSX. Done. And I love GitHub Pages. `git push` on a `gh-pages` branch and it's live on a great CDN (for free), does it get any easier than that? But unfortunately GitHub Pages doesn't play nice with React, until now...
 
-If you want to host your website somewhere else than GitHub (or just would like to customize and build your site locally), please check out the [Jekyll documentation](http://jekyllrb.com/). 
+##### Why it's necessary
+GitHub Pages is a static server that doesn't support single page apps. When there is a fresh page load for a url like `example.tld/foo`, where `/foo` is a frontend route, GitHub Pages returns a 404 because it knows nothing of `/foo`. This only affects fresh page loads, however, as navigating to `/foo` from within the single page app is not a problem because the server never receives a request for `/foo`. (Note you could use `hashHistory` instead, but really no one wants to use `hashHistory` with its janky urls and incompatibility with `#hash-fragments`, e.g. `example.tld/foo` becomes `example.tld/#/foo?_k=yknaj`, ugh).
+
+Also, [GitHub Pages are always available at `example.tld/my-repo-name`][ghPagesMyRepoName], even when a custom domain is in use. Accessing the site at `/my-repo-name` will cause frontend routing to break, so when the site is accessed at `/my-repo-name`, a redirect to just the domain with no path is required.
+
+##### How it works
+When the GitHub Pages server gets a request for a path defined with frontend routes, e.g. `example.tld/foo`, it returns a custom `404.html` page. The [custom `404.html` page contains a script][404html] that takes the current url and converts the path, query string and hash fragment into just a query string, and then redirects the browser to the new url with only a query string and no path or hash fragment. For example, `example.tld/one/two?a=b&c=d#qwe`, becomes `example.tld/?redirect=true&pathname=%2Fone%2Ftwo&query=a=b%26c=d&hash=qwe`.
+
+The GitHub Pages server receives the new request, e.g. `example.tld?redirect=true...`, ignores the query string and returns the `index.html` file, which loads the React single page app. The [root React Router route][onEnterRedirect] has an `onEnter` hook that calls a function to check for a redirect in the query string. If a redirect is present in the query string, it's converted back into the correct url and React Router redirects to the url which loads the respective routes and components. (Note that these redirects are only needed with fresh page loads, and not when navigating within the single page app once it's loaded).
+
+The other issue of GitHub Pages always being available at `/my-repo-name` is handled by the same [root route onEnter hook][onEnterRedirect] function, which checks for the `/my-repo-name` path and redirects to just the domain (with no path) if needed.
+
+
+## Usage instructions
+*For general information on using GitHub Pages please see [GitHub Pages Basics][ghPagesBasics], note that pages can be [User, Organization or Project Pages][ghPagesTypes]*  
+
+1. Clone this repo (`$ git clone https://github.com/rafrex/react-github-pages.git`)
+2. Delete the `.git` directory (`cd` into the `react-github-pages` directory and run `$ rm -rf .git`)
+3. Instantiate the repository
+  - If you're using this boilerplate as a new repository
+    - `$ git init` in the `react-github-pages` directory, and then `$ git add .` and `$ git commit -m "Add React for GitHub Pages boilerplate"` to initialize a fresh repository
+    - If this will be a Project Pages site, then change the branch name from `master` to `gh-pages` (`$ git branch -m gh-pages`), if this will be a User or Organization Pages site, then leave the branch name as `master`
+    - Create an empty repo on GitHub.com (don't add a readme, gitignore or license), and add it as a remote to the local repo (`$ git remote add origin <your-new-github-repo-url>`)
+    - Feel free to rename the local `react-github-pages` directory to anything you wnat (e.g. `your-project-name`)
+  - If you're adding this boilerplate as the `gh-pages` branch of an existing repository
+    - Create and checkout a new orphaned branch named `gh-pages` for your existing repo (`$ git checkout --orphan gh-pages`), note that the `gh-pages` branch won't appear in the list of branches until you make your first commit
+    - Delete all of the files and directories from the working directory of your existing repo (`$ git rm -rf .`)
+    - Copy all of the files and directories from the cloned `react-github-pages` directory into your project's now empty working directory
+    - `$ git add .` and `$ git commit -m "Add React for GitHub Pages boilerplate"` to instantiate the `gh-pages` branch
+4. Set up your custom domain - see GitHub Pages instructions for [setting up a custom domain][customDomain]
+ - *Note that you must use a custom domain if you are setting up a Project Pages site in order for GitHub Pages to serve the custom 404 page, however, if you are creating a User or Organization Pages site, then using a custom domain is optional (if you don't use a custom domain delete the `CNAME` file)*
+ - Update the [`CNAME` file][cnameFile] with your custom domain, don't include `http://`, but do include a subdomain if desired, e.g. `www` or `your-subdomain`
+ - Update your `CNAME` and/or `A` record with your DNS provider
+ - Run `$ dig your-subdomain.your-domain.tld` to make sure it's set up properly with your DNS (don't include `http://`)
+5. [Set your repo name in index.js][setRepoName], this should match your repository name as it is listed on GitHub
+6. [Set your domain name in index.js][setDomain], if you are using a custom domain then this should match the domain in your `CNAME` file (except include the `http://`), if you are not using a custom domain, then this will be `http://<your github username or orgname>.github.io`
+7. Run `$ npm install` to install React and other dependencies, and then run `$ webpack` to update the build
+8. `$ git add .` and `$ git commit -m "Update boilerplate for use with my domain"` and then push to GitHub (`$ git push origin gh-pages` for Project Pages or `$ git push origin master` for User or Organization Pages)
+
+The example site should now be live on your domain
+
+##### Creating your own site
+- Write your own React components, create your own [routes][routes], and add some style!
+- Change the [title in `index.html`][indexHtmlTitle] and the [title in `404.html`][404htmlTitle] to your site's title, also [remove the Google analytics script][googleAnalytics] from the header of `index.html` (the analytics function is wrapped in an `if` statement so that it will only run on the example site's domain (http://react-github-pages.rafrex.com), but you don't need it, so remove it or replace it with your own analytics)
+- Change the readme and license as you see fit
+- After you update your code run `$ webpack` (or `$ webpack -p` for [production][webpackProduction], or `-d` for [development][webpackDevelopment]) to update the build, then `$ git commit` and `$ git push` to make your changes live
+
+##### Miscellaneous
+- The `.nojekyll` file in this repo [turns off Jekyll for GitHub Pages][nojekyll]
+- Need form submission on your static site? Use [Formspree][formspree]
+- One of the awesome things about the GitHub Pages CDN is that all files are automatically compressed with gzip, so no need to worry about compressing your JavaScript, HTML or CSS files for production
+
+
+
+
+<!-- links to within repo -->
+[setRepoName]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.js#L74
+[setDomain]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.js#L77
+[routes]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.js#L84
+[onEnterRedirect]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.js#L86
+[indexHtmlTitle]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.html#L6
+[googleAnalytics]: https://github.com/rafrex/react-github-pages/blob/gh-pages/index.html#L9
+[404html]: https://github.com/rafrex/react-github-pages/blob/gh-pages/404.html
+[404htmlTitle]: https://github.com/rafrex/react-github-pages/blob/gh-pages/404.html#L5
+[cnameFile]: https://github.com/rafrex/react-github-pages/blob/gh-pages/CNAME
+
+<!-- links to github docs -->
+[ghPagesOverview]: https://pages.github.com/
+[ghPagesBasics]: https://help.github.com/categories/github-pages-basics/
+[ghPagesTypes]: https://help.github.com/articles/user-organization-and-project-pages/
+[customDomain]: https://help.github.com/articles/quick-start-setting-up-a-custom-domain/
+[nojekyll]: https://help.github.com/articles/files-that-start-with-an-underscore-are-missing/
+[ghPagesMyRepoName]: https://help.github.com/articles/custom-domain-redirects-for-github-pages-sites/
+
+<!-- other links -->
+[react]: https://github.com/facebook/react
+[reactRouter]: https://github.com/reactjs/react-router
+[webpackProduction]: https://webpack.github.io/docs/cli.html#production-shortcut-p
+[webpackDevelopment]: https://webpack.github.io/docs/cli.html#development-shortcut-d
+[formspree]: http://formspree.io/
