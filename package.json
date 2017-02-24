@@ -5,6 +5,9 @@
   "license": "MIT",
   "private": "true",
   "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rafrex/react-github-pages.git"
@@ -21,6 +24,7 @@
     "react": "^15.0.2",
     "react-dom": "^15.0.2",
     "react-router": "^2.4.0",
-    "webpack": "^1.13.0"
+    "webpack": "^1.13.0",
+    "webpack-hot-middleware": "^2.17.0"
   }
 }
